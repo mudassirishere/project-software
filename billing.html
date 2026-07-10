@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billing - Professional Billing System Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body { 
+            background-color: #f8f9fa; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        }
+        .bill-header { 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+            color: white; 
+        }
+        .card { 
+            border: none; 
+            border-radius: 10px; 
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s; 
+        }
+        .card:hover { 
+            transform: translateY(-5px); 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+        }
+        .table-responsive { 
+            border-radius: 10px; 
+            overflow: hidden; 
+            border: 1px solid #dee2e6;
+        }
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #ced4da;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        .stat-card {
+            padding: 1.5rem;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+        }
+        .stat-card h6 {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+        .stat-card h3 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0;
+        }
+        
+        /* Responsive fixes */
+        @media (max-width: 768px) {
+            .stat-card { margin-bottom: 1rem; }
+            .stat-card h3 { font-size: 1.5rem; }
+            .btn-lg { padding: 0.5rem 1rem; font-size: 0.9rem; }
+            .table th, .table td { padding: 0.5rem; }
+        }
+        
+        @media (max-width: 576px) {
+            .card-body { padding: 1rem; }
+            .form-control, .form-select { padding: 0.5rem 0.75rem; }
+            .stat-card h3 { font-size: 1.3rem; }
+        }
+        
+        /* Print specific styles */
+        @media print {
+            .no-print { display: none !important; }
+            #dashboardContent, #billingForm { display: none !important; }
+            #printSection { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top no-print">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-file-invoice-dollar"></i> <strong>Billing System Pro</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pro-inventry.html">
+                            <i class="fas fa-boxes"></i> Inventory
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pro-charts.html">
+                            <i class="fas fa-chart-line"></i> Charts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="history.html">
+                            <i class="fas fa-history"></i> History
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="billing.html">
+                            <i class="fas fa-file-invoice"></i> Billing
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Dashboard Content -->
+        <div id="dashboardContent">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h3 class="text-primary fw-bold mb-1">Business Overview</h3>
+                    <p class="text-muted mb-0">Track your sales, bills, and customer information</p>
+                </div>
+                <button class="btn btn-primary btn-lg shadow" id="showBillFormBtn">
+                    <i class="fas fa-plus-circle me-2"></i> Create New Bill
+                </button>
+            </div>
+            
+            <!-- Stats Cards -->
+            <div class="row g-3 mb-4">
+                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                    <div class="stat-card bg-success">
+                        <h6><i class="fas fa-rupee-sign me-1"></i> Today's Sales</h6>
+                        <h3 id="todaySales">Rs. 0</h3>
+                        <small class="opacity-75">Total revenue today</small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                    <div class="stat-card bg-info">
+                        <h6><i class="fas fa-file-invoice me-1"></i> Total Bills</h6>
+                        <h3 id="todayBills">0</h3>
+                        <small class="opacity-75">Bills created today</small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                    <div class="stat-card bg-warning">
+                        <h6><i class="fas fa-clock me-1"></i> Pending Amount</h6>
+                        <h3 id="pendingAmount">Rs. 0</h3>
+                        <small class="opacity-75">To be collected</small>
+                    </div>
+                </div>
+                <div class="col-xl-3 col-lg-3 col-md-6 col-sm-6">
+                    <div class="stat-card bg-danger">
+                        <h6><i class="fas fa-users me-1"></i> Customers</h6>
+                        <h3 id="totalCustomers">0</h3>
+                        <small class="opacity-75">Total customers</small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2"></i>Recent Transactions</h5>
+                    <button class="btn btn-sm btn-outline-primary" onclick="refreshDashboard()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Bill No</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Net Amount</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentBillsTable">
+                                <tr id="loadingRow">
+                                    <td colspan="6" class="text-center py-4">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-2 mb-0">Loading recent bills...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-white text-center">
+                    <a href="history.html" class="btn btn-link text-decoration-none">
+                        <i class="fas fa-external-link-alt me-1"></i> View All Bills
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Billing Form (Initially Hidden) -->
+        <div class="card shadow mt-4" id="billingForm" style="display: none;">
+            <div class="card-header bill-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h4 class="mb-0"><i class="fas fa-file-invoice me-2"></i>New Invoice</h4>
+                    <small class="opacity-75">Fill all required fields and create bill</small>
+                </div>
+                <button class="btn btn-light btn-sm" id="closeBillFormBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="card-body">
+                <form id="billForm">
+                    <!-- Bill Header Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label"><strong>Bill No *</strong></label>
+                            <input type="text" class="form-control" id="billNo" readonly>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label"><strong>Bill Date *</strong></label>
+                            <input type="date" class="form-control" id="billDate" required>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label"><strong>Customer Name *</strong></label>
+                            <input type="text" class="form-control" id="customerName" required list="customerList">
+                            <datalist id="customerList"></datalist>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label"><strong>Phone Number</strong></label>
+                            <input type="text" class="form-control" id="customerPhone" maxlength="15">
+                        </div>
+                    </div>
+                    
+                    <!-- Product Selection Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label"><strong>Product *</strong></label>
+                            <select class="form-select" id="productSelect" required>
+                                <option value="">Select Product</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label"><strong>Weight (kg) *</strong></label>
+                            <input type="number" class="form-control" id="weight" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label"><strong>Rate (Rs.) *</strong></label>
+                            <input type="number" class="form-control" id="rate" step="0.01" min="0.01" required>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label"><strong>Amount</strong></label>
+                            <input type="number" class="form-control" id="amount" readonly>
+                        </div>
+                        <div class="col-md-2 mb-3 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary w-100" onclick="addProductToBill()">
+                                <i class="fas fa-plus me-1"></i> Add
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Bill Items Table -->
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Weight (kg)</th>
+                                    <th>Rate (Rs.)</th>
+                                    <th>Amount (Rs.)</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billItemsTable">
+                                <tr id="noItemsRow">
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        <i class="fas fa-box-open fa-2x mb-2"></i><br>
+                                        No items added to bill
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot class="table-secondary">
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Sub Total:</strong></td>
+                                    <td><strong id="subTotal">Rs. 0.00</strong></td>
+                                    <td></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Discount:</strong></td>
+                                    <td>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control form-control-sm" id="discount" 
+                                                   value="0" step="0.01" min="0" onchange="calculateTotal()">
+                                            <span class="input-group-text">Rs.</span>
+                                        </div>
+                                    </td>
+                                    <td></td>
+                                </tr>
+                                <tr class="table-active">
+                                    <td colspan="3" class="text-end"><strong>Net Amount:</strong></td>
+                                    <td><strong id="netAmount">Rs. 0.00</strong></td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    
+                    <!-- Payment Section -->
+                    <div class="row mb-4">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label"><strong>Payment Method *</strong></label>
+                            <select class="form-select" id="paymentMethod" required>
+                                <option value="Cash" selected>Cash</option>
+                                <option value="Cheque">Cheque</option>
+                                <option value="Online">Online Transfer</option>
+                                <option value="Card">Credit/Debit Card</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label"><strong>Received Amount *</strong></label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="receivedAmount" 
+                                       step="0.01" min="0" required onchange="calculateBalance()">
+                                <span class="input-group-text">Rs.</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label"><strong>Balance</strong></label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="balance" readonly>
+                                <span class="input-group-text">Rs.</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Remarks Section -->
+                    <div class="mb-4">
+                        <label class="form-label"><strong>Remarks</strong></label>
+                        <textarea class="form-control" id="remarks" rows="2" 
+                                  placeholder="Additional notes or comments..."></textarea>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" onclick="resetBillForm()">
+                            <i class="fas fa-redo me-1"></i> Reset
+                        </button>
+                        <div>
+                            <button type="button" class="btn btn-success me-2" onclick="saveBill()">
+                                <i class="fas fa-save me-1"></i> Save Bill
+                            </button>
+                            <button type="button" class="btn btn-primary" onclick="saveAndPrintBill()">
+                                <i class="fas fa-print me-1"></i> Save & Print
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Print Section -->
+    <div id="printSection" style="display: none;">
+        <div style="width: 210mm; padding: 20px; font-family: 'Arial', sans-serif; color: #000; background: white;">
+            <!-- Company Header -->
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+                <div>
+                    <h1 style="margin: 0; font-size: 28px; letter-spacing: 2px; color: #2c3e50;">YOUSUF & SONS</h1>
+                    <p style="margin: 0; font-weight: bold; font-size: 14px; color: #34495e;">INDUSTRIES</p>
+                    <p style="margin: 5px 0 0 0; font-style: italic; font-size: 12px; color: #7f8c8d;">
+                        Manufacturer of Quality Rivets Steel, Copper, Aluminium, Brass & other Metal Rivets
+                    </p>
+                </div>
+                <div style="text-align: right;">
+                    <h2 style="margin: 0; color: #2c3e50; font-size: 24px;">INVOICE</h2>
+                    <p style="margin: 5px 0 0 0; font-size: 14px;">Original Copy</p>
+                </div>
+            </div>
+
+            <!-- Bill Details -->
+            <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+                <div style="width: 50%;">
+                    <p style="margin: 5px 0;"><strong>BILL TO:</strong></p>
+                    <h3 style="margin: 5px 0 10px 0; color: #2c3e50;" id="p-customer"></h3>
+                    <p style="margin: 5px 0;"><strong>NTN NUMBER:</strong> 4220138256965</p>
+                </div>
+                <div style="text-align: right;">
+                    <table style="border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 5px 10px; text-align: right;"><strong>DATE:</strong></td>
+                            <td style="padding: 5px 10px;" id="p-date"></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 10px; text-align: right;"><strong>INVOICE #:</strong></td>
+                            <td style="padding: 5px 10px;" id="p-billNo"></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 10px; text-align: right;"><strong>PO NO:</strong></td>
+                            <td style="padding: 5px 10px;">----------</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Bill Items Table -->
+            <table style="width: 100%; margin-top: 20px; border-collapse: collapse; border: 1px solid #000;">
+                <thead>
+                    <tr style="background-color: #f2f2f2; border-bottom: 2px solid #000;">
+                        <th style="border: 1px solid #000; padding: 12px; text-align: left;">Qty (kg)</th>
+                        <th style="border: 1px solid #000; padding: 12px; text-align: left; width: 50%;">Description</th>
+                        <th style="border: 1px solid #000; padding: 12px; text-align: left;">Unit Price (Rs.)</th>
+                        <th style="border: 1px solid #000; padding: 12px; text-align: left;">Line Total (Rs.)</th>
+                    </tr>
+                </thead>
+                <tbody id="p-items-body">
+                    <!-- Bill items will be populated here -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="text-align: right; padding: 12px; font-weight: bold; font-size: 16px;">TOTAL AMOUNT</td>
+                        <td style="border: 1px solid #000; padding: 12px; font-weight: bold; text-align: left; font-size: 16px;">
+                            Rs. <span id="p-total-final"></span>
+                        </td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <!-- Footer -->
+            <div style="margin-top: 50px; display: flex; justify-content: space-between; align-items: flex-end;">
+                <div style="margin-top: 40px;">
+                    <p style="margin: 20px 0 5px 0;">________________________</p>
+                    <p style="margin: 0;">Authorized Signature</p>
+                </div>
+                <div style="text-align: right; font-size: 12px; color: #555;">
+                    <p style="margin: 0; font-weight: bold;">YOUSUF & SONS INDUSTRIES</p>
+                    <p style="margin: 0;">GALI NO.2 | HEERA NAND KHEM SINGH ROAD</p>
+                    <p style="margin: 0;">GARDEN, KARACHI.</p>
+                    <p style="margin: 10px 0 0 0;">Email: info@yousufsons.com | Phone: +92 300 1234567</p>
+                </div>
+            </div>
+            
+            <!-- Terms and Conditions -->
+            <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 11px; color: #666;">
+                <p style="margin: 0;"><strong>Terms & Conditions:</strong></p>
+                <p style="margin: 5px 0;">1. Payment due within 30 days of invoice date.</p>
+                <p style="margin: 5px 0;">2. Goods sold are not returnable unless defective.</p>
+                <p style="margin: 5px 0;">3. Interest @ 18% p.a. will be charged on overdue accounts.</p>
+                <p style="margin: 5px 0;">4. All disputes subject to Karachi jurisdiction only.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
+        
+    </script>
+    <!-- Script JS -->
+  <script>
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Billing Page Initializing...');
+        
+        // Load dashboard data
+        loadDashboardStats();
+        loadRecentBills();
+        
+        // Initialize bill form
+        initializeBillForm();
+        
+        // Setup event listeners
+        setupBillingEventListeners();
+        
+        // Check if editing a bill
+        const urlParams = new URLSearchParams(window.location.search);
+        const editBillId = urlParams.get('edit');
+        if (editBillId) {
+            loadBillForEditing(editBillId);
+        }
+        
+        console.log('Billing Page Initialized');
+    });
+    
+    function setupBillingEventListeners() {
+        // Show/Hide bill form
+        document.getElementById('showBillFormBtn').addEventListener('click', showBillForm);
+        document.getElementById('closeBillFormBtn').addEventListener('click', hideBillForm);
+        
+        // Auto-calculate amount
+        const weightInput = document.getElementById('weight');
+        const rateInput = document.getElementById('rate');
+        
+        if (weightInput && rateInput) {
+            weightInput.addEventListener('input', calculateAmount);
+            rateInput.addEventListener('input', calculateAmount);
+        }
+        
+        // Load products on page load
+        loadProductsForBilling();
+        
+        // Load customer list
+        loadCustomerList();
+    }
+    
+    function showBillForm() {
+        document.getElementById('dashboardContent').style.display = 'none';
+        document.getElementById('billingForm').style.display = 'block';
+        
+        // Generate bill number
+        generateBillNumber();
+        
+        // Set today's date
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('billDate').value = today;
+        
+        // Focus on customer name
+        setTimeout(() => {
+            document.getElementById('customerName').focus();
+        }, 100);
+    }
+    
+    function hideBillForm() {
+        document.getElementById('billingForm').style.display = 'none';
+        document.getElementById('dashboardContent').style.display = 'block';
+    }
+    
+    function generateBillNumber() {
+        try {
+            const bills = JSON.parse(localStorage.getItem('bills') || '[]');
+            let lastBillNo = 1000;
+            
+            if (bills.length === 0) {
+                document.getElementById('billNo').value = 'BIL1001';
+                return;
+            }
+            
+            // Find highest bill number
+            bills.forEach(bill => {
+                if (bill.billNo && bill.billNo.startsWith('BIL')) {
+                    const num = parseInt(bill.billNo.replace('BIL', ''));
+                    if (num > lastBillNo) {
+                        lastBillNo = num;
+                    }
+                }
+            });
+            
+            const newBillNo = String(lastBillNo + 1).padStart(4, '0');
+            document.getElementById('billNo').value = `BIL${newBillNo}`;
+        } catch (error) {
+            console.error('Error generating bill number:', error);
+            document.getElementById('billNo').value = 'BIL1001';
+        }
+    }
+    
+    function calculateAmount() {
+        const weight = parseFloat(document.getElementById('weight').value) || 0;
+        const rate = parseFloat(document.getElementById('rate').value) || 0;
+        const amount = weight * rate;
+        document.getElementById('amount').value = amount.toFixed(2);
+    }
+    
+    function loadProductsForBilling() {
+        try {
+            const inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
+            const select = document.getElementById('productSelect');
+            
+            if (!select) return;
+            
+            // Clear existing options except first
+            while (select.options.length > 1) {
+                select.remove(1);
+            }
+            
+            // Add inventory items
+            inventory.forEach(item => {
+                if (item.stock > 0) {
+                    const option = document.createElement('option');
+                    option.value = item.id;
+                    option.textContent = `${item.name} - Rs. ${parseFloat(item.sellingPrice || 0).toFixed(2)} (Stock: ${item.stock})`;
+                    select.appendChild(option);
+                }
+            });
+            
+            // Auto-fill rate when product is selected
+            select.addEventListener('change', function() {
+                const selectedId = this.value;
+                if (selectedId) {
+                    const product = inventory.find(p => p.id === selectedId);
+                    if (product) {
+                        document.getElementById('rate').value = parseFloat(product.sellingPrice || 0).toFixed(2);
+                        calculateAmount();
+                    }
+                }
+            });
+            
+        } catch (error) {
+            console.error('Error loading products:', error);
+            showAlert('Error loading products from inventory', 'danger');
+        }
+    }
+    
+    function loadCustomerList() {
+        try {
+            const bills = JSON.parse(localStorage.getItem('bills') || '[]');
+            const customers = [...new Set(bills.map(bill => bill.customerName).filter(name => name))];
+            const datalist = document.getElementById('customerList');
+            
+            if (!datalist) return;
+            
+            datalist.innerHTML = '';
+            customers.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer;
+                datalist.appendChild(option);
+            });
+            
+        } catch (error) {
+            console.error('Error loading customer list:', error);
+        }
+    }
+    
+    function addProductToBill() {
+        const productSelect = document.getElementById('productSelect');
+        const weight = parseFloat(document.getElementById('weight').value);
+        const rate = parseFloat(document.getElementById('rate').value);
+        
+        if (!productSelect.value || !weight || !rate || weight <= 0 || rate <= 0) {
+            showAlert('Please select a product and enter valid weight and rate', 'warning');
+            return;
+        }
+        
+        const productId = productSelect.value;
+        const productText = productSelect.options[productSelect.selectedIndex].text;
+        const productName = productText.split(' - ')[0];
+        const amount = weight * rate;
+        
+        // Remove "no items" row if present
+        const noItemsRow = document.getElementById('noItemsRow');
+        if (noItemsRow) {
+            noItemsRow.remove();
+        }
+        
+        // Check if product already exists in table
+        const existingRow = Array.from(document.querySelectorAll('#billItemsTable tr')).find(row => {
+            const firstCell = row.querySelector('td');
+            return firstCell && firstCell.textContent === productName;
+        });
+        
+        if (existingRow) {
+            // Update existing row
+            const existingWeight = parseFloat(existingRow.dataset.weight);
+            const existingRate = parseFloat(existingRow.dataset.rate);
+            const existingAmount = parseFloat(existingRow.dataset.amount);
+            
+            const newWeight = existingWeight + weight;
+            const newAmount = existingAmount + amount;
+            
+            existingRow.cells[1].textContent = newWeight.toFixed(2) + ' kg';
+            existingRow.cells[3].textContent = 'Rs. ' + newAmount.toFixed(2);
+            existingRow.dataset.weight = newWeight;
+            existingRow.dataset.amount = newAmount;
+        } else {
+            // Add new row
+            const tableBody = document.getElementById('billItemsTable');
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${productName}</td>
+                <td>${weight.toFixed(2)} kg</td>
+                <td>Rs. ${rate.toFixed(2)}</td>
+                <td>Rs. ${amount.toFixed(2)}</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="removeBillItem(this)">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            row.dataset.productId = productId;
+            row.dataset.weight = weight;
+            row.dataset.rate = rate;
+            row.dataset.amount = amount;
+            
+            tableBody.appendChild(row);
+        }
+        
+        // Clear form fields
+        productSelect.selectedIndex = 0;
+        document.getElementById('weight').value = '';
+        document.getElementById('rate').value = '';
+        document.getElementById('amount').value = '';
+        
+        // Recalculate total
+        calculateTotal();
+    }
+    
+    function removeBillItem(button) {
+        const row = button.closest('tr');
+        row.remove();
+        
+        // Add "no items" row if table is empty
+        const tableBody = document.getElementById('billItemsTable');
+        if (tableBody.children.length === 0) {
+            tableBody.innerHTML = `
+                <tr id="noItemsRow">
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="fas fa-box-open fa-2x mb-2"></i><br>
+                        No items added to bill
+                    </td>
+                </tr>
+            `;
+        }
+        
+        // Recalculate total
+        calculateTotal();
+    }
+    
+    function calculateTotal() {
+        const rows = document.querySelectorAll('#billItemsTable tr:not(#noItemsRow)');
+        let subTotal = 0;
+        
+        rows.forEach(row => {
+            const amount = parseFloat(row.dataset.amount) || 0;
+            subTotal += amount;
+        });
+        
+        const discount = parseFloat(document.getElementById('discount').value) || 0;
+        const netAmount = Math.max(0, subTotal - discount);
+        
+        document.getElementById('subTotal').textContent = `Rs. ${subTotal.toFixed(2)}`;
+        document.getElementById('netAmount').textContent = `Rs. ${netAmount.toFixed(2)}`;
+        
+        // Update received amount if it's more than net amount
+        const receivedAmount = parseFloat(document.getElementById('receivedAmount').value) || 0;
+        if (receivedAmount > netAmount) {
+            document.getElementById('receivedAmount').value = netAmount.toFixed(2);
+        }
+        
+        calculateBalance();
+    }
+    
+    function calculateBalance() {
+        const netAmount = parseFloat(document.getElementById('netAmount').textContent.replace('Rs. ', '')) || 0;
+        const receivedAmount = parseFloat(document.getElementById('receivedAmount').value) || 0;
+        let balance = netAmount - receivedAmount;
+        
+        // Ensure balance is not negative
+        if (balance < 0) {
+            balance = 0;
+            document.getElementById('receivedAmount').value = netAmount.toFixed(2);
+        }
+        
+        document.getElementById('balance').value = balance.toFixed(2);
+    }
+    
+    function resetBillForm() {
+        if (confirm('Are you sure you want to reset the form? All entered data will be lost.')) {
+            document.getElementById('billForm').reset();
+            document.getElementById('billItemsTable').innerHTML = `
+                <tr id="noItemsRow">
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="fas fa-box-open fa-2x mb-2"></i><br>
+                        No items added to bill
+                    </td>
+                </tr>
+            `;
+            document.getElementById('subTotal').textContent = 'Rs. 0.00';
+            document.getElementById('netAmount').textContent = 'Rs. 0.00';
+            document.getElementById('balance').value = '0';
+            document.getElementById('discount').value = '0';
+            document.getElementById('receivedAmount').value = '0';
+            
+            // Generate new bill number
+            generateBillNumber();
+            
+            // Set today's date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('billDate').value = today;
+            
+            showAlert('Form reset successfully', 'info');
+        }
+    }
+    
+    function loadDashboardStats() {
+        try {
+            const bills = JSON.parse(localStorage.getItem('bills') || '[]');
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Today's sales
+            const todaySales = bills
+                .filter(bill => bill.date === today)
+                .reduce((sum, bill) => sum + (parseFloat(bill.netAmount) || 0), 0);
+            
+            // Today's bills count
+            const todayBills = bills.filter(bill => bill.date === today).length;
+            
+            // Pending amount
+            const pendingAmount = bills.reduce((sum, bill) => sum + (parseFloat(bill.balance) || 0), 0);
+            
+            // Total customers
+            const customers = [...new Set(bills.map(bill => bill.customerName).filter(name => name))];
+            
+            // Update DOM
+            document.getElementById('todaySales').textContent = `Rs. ${todaySales.toFixed(2)}`;
+            document.getElementById('todayBills').textContent = todayBills;
+            document.getElementById('pendingAmount').textContent = `Rs. ${pendingAmount.toFixed(2)}`;
+            document.getElementById('totalCustomers').textContent = customers.length;
+            
+        } catch (error) {
+            console.error('Error loading dashboard stats:', error);
+        }
+    }
+    
+    function loadRecentBills() {
+        try {
+            const bills = JSON.parse(localStorage.getItem('bills') || '[]');
+            const recentBills = bills.slice(-5).reverse(); // Last 5 bills
+            const tableBody = document.getElementById('recentBillsTable');
+            
+            if (!tableBody) return;
+            
+            tableBody.innerHTML = '';
+            
+            if (recentBills.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="fas fa-inbox fa-2x mb-2"></i><br>
+                            No recent bills found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            recentBills.forEach(bill => {
+                const row = document.createElement('tr');
+                const status = parseFloat(bill.balance) > 0 ? 'Pending' : 'Paid';
+                const statusClass = parseFloat(bill.balance) > 0 ? 'warning' : 'success';
+                
+                row.innerHTML = `
+                    <td><strong>${bill.billNo || 'N/A'}</strong></td>
+                    <td>${bill.customerName || 'Unknown'}</td>
+                    <td>${bill.date || 'N/A'}</td>
+                    <td>Rs. ${parseFloat(bill.netAmount || 0).toFixed(2)}</td>
+                    <td>
+                        <span class="badge bg-${statusClass}">
+                            ${status}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-outline-primary" onclick="viewBill('${bill.id}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="deleteBill('${bill.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+        } catch (error) {
+            console.error('Error loading recent bills:', error);
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error loading bills
+                    </td>
+                </tr>
+            `;
+        }
+    }
+    
+    function refreshDashboard() {
+        loadDashboardStats();
+        loadRecentBills();
+        showAlert('Dashboard refreshed!', 'success');
+    }
+    
+    function viewBill(billId) {
+        window.location.href = `history.html?view=${billId}`;
+    }
+    
+    function deleteBill(billId) {
+        if (confirm('Are you sure you want to delete this bill? This action cannot be undone.')) {
+            try {
+                const bills = JSON.parse(localStorage.getItem('bills') || '[]');
+                const updatedBills = bills.filter(bill => bill.id !== billId);
+                
+                localStorage.setItem('bills', JSON.stringify(updatedBills));
+                
+                // Refresh the dashboard
+                loadDashboardStats();
+                loadRecentBills();
+                
+                showAlert('Bill deleted successfully!', 'success');
+            } catch (error) {
+                console.error('Error deleting bill:', error);
+                showAlert('Error deleting bill: ' + error.message, 'danger');
+            }
+        }
+    }
+    
+    function showAlert(message, type) {
+        // Remove existing alerts
+        const existingAlerts = document.querySelectorAll('.alert');
+        existingAlerts.forEach(alert => alert.remove());
+        
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${type} alert-dismissible fade show mt-3`;
+        alertDiv.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        const container = document.querySelector('.container');
+        container.parentNode.insertBefore(alertDiv, container);
+        
+        setTimeout(() => {
+            if (alertDiv.parentNode) {
+                alertDiv.remove();
+            }
+        }, 5000);
+    }
+    
+    function saveBill() {
+        // Validate form
+        const customerName = document.getElementById('customerName').value.trim();
+        const billDate = document.getElementById('billDate').value;
+        const billItems = document.querySelectorAll('#billItemsTable tr:not(#noItemsRow)');
+        
+        if (!customerName) {
+            showAlert('Please enter customer name', 'warning');
+            document.getElementById('customerName').focus();
+            return;
+        }
+        
+        if (!billDate) {
+            showAlert('Please select bill date', 'warning');
+            document.getElementById('billDate').focus();
+            return;
+        }
+        
+        if (billItems.length === 0) {
+            showAlert('Please add at least one product to the bill', 'warning');
+            return;
+        }
+        
+        try {
+            // Collect bill items
+            const items = [];
+            billItems.forEach(row => {
+                items.push({
+                    productId: row.dataset.productId,
+                    productName: row.cells[0].textContent,
+                    weight: parseFloat(row.dataset.weight),
+                    rate: parseFloat(row.dataset.rate),
+                    amount: parseFloat(row.dataset.amount)
+                });
+            });
+            
+            // Calculate totals
+            const subTotal = parseFloat(document.getElementById('subTotal').textContent.replace('Rs. ', ''));
+            const discount = parseFloat(document.getElementById('discount').value) || 0;
+            const netAmount = parseFloat(document.getElementById('netAmount').textContent.replace('Rs. ', ''));
+            const receivedAmount = parseFloat(document.getElementById('receivedAmount').value) || 0;
+            const balance = parseFloat(document.getElementById('balance').value) || 0;
+            
+            // Create bill object
+            const bill = {
+                id: 'bill_' + Date.now(),
+                billNo: document.getElementById('billNo').value,
+                date: billDate,
+                customerName: customerName,
+                customerPhone: document.getElementById('customerPhone').value,
+                items: items,
+                subTotal: subTotal,
+                discount: discount,
+                netAmount: netAmount,
+                paymentMethod: document.getElementById('paymentMethod').value,
+                receivedAmount: receivedAmount,
+                balance: balance,
+                remarks: document.getElementById('remarks').value,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Save to localStorage
+            const bills = JSON.parse(localStorage.getItem('bills') || '[]');
+            bills.push(bill);
+            localStorage.setItem('bills', JSON.stringify(bills));
+            
+            // Update inventory stock
+            updateInventoryStock(items);
+            
+            // Reset form and show dashboard
+            resetBillForm();
+            hideBillForm();
+            loadDashboardStats();
+            loadRecentBills();
+            
+            showAlert('Bill saved successfully! Bill No: ' + bill.billNo, 'success');
+            
+        } catch (error) {
+            console.error('Error saving bill:', error);
+            showAlert('Error saving bill: ' + error.message, 'danger');
+        }
+    }
+    
+    function updateInventoryStock(items) {
+        try {
+            const inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
+            
+            items.forEach(item => {
+                const productIndex = inventory.findIndex(p => p.id === item.productId);
+                if (productIndex !== -1) {
+                    inventory[productIndex].stock -= item.weight;
+                    if (inventory[productIndex].stock < 0) {
+                        inventory[productIndex].stock = 0;
+                    }
+                }
+            });
+            
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+        } catch (error) {
+            console.error('Error updating inventory:', error);
+        }
+    }
+    
+    function saveAndPrintBill() {
+        saveBill(); // Save bill first
+        
+        // Prepare print data
+        const billNo = document.getElementById('billNo').value;
+        const customerName = document.getElementById('customerName').value;
+        const billDate = document.getElementById('billDate').value;
+        const billItems = document.querySelectorAll('#billItemsTable tr:not(#noItemsRow)');
+        const netAmount = document.getElementById('netAmount').textContent.replace('Rs. ', '');
+        
+        // Update print section
+        document.getElementById('p-customer').textContent = customerName;
+        document.getElementById('p-date').textContent = billDate;
+        document.getElementById('p-billNo').textContent = billNo;
+        
+        const itemsBody = document.getElementById('p-items-body');
+        itemsBody.innerHTML = '';
+        
+        let total = 0;
+        billItems.forEach(row => {
+            const productName = row.cells[0].textContent;
+            const weight = row.cells[1].textContent.replace(' kg', '');
+            const rate = row.cells[2].textContent.replace('Rs. ', '');
+            const amount = row.cells[3].textContent.replace('Rs. ', '');
+            
+            const rowElement = document.createElement('tr');
+            rowElement.innerHTML = `
+                <td style="border: 1px solid #000; padding: 10px;">${weight}</td>
+                <td style="border: 1px solid #000; padding: 10px;">${productName}</td>
+                <td style="border: 1px solid #000; padding: 10px;">${rate}</td>
+                <td style="border: 1px solid #000; padding: 10px;">${amount}</td>
+            `;
+            itemsBody.appendChild(rowElement);
+            
+            total += parseFloat(amount);
+        });
+        
+        document.getElementById('p-total-final').textContent = total.toFixed(2);
+        
+        // Show print section and print
+        setTimeout(() => {
+            window.print();
+        }, 500);
+    }
+    
+    function initializeBillForm() {
+        // Set default values
+        generateBillNumber();
+        
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('billDate').value = today;
+        document.getElementById('discount').value = '0';
+        document.getElementById('receivedAmount').value = '0';
+        document.getElementById('balance').value = '0';
+    }
+    
+    function loadBillForEditing(billId) {
+        try {
+            const bills = JSON.parse(localStorage.getItem('bills') || '[]');
+            const bill = bills.find(b => b.id === billId);
+            
+            if (bill) {
+                // Show bill form
+                showBillForm();
+                
+                // Fill form fields
+                document.getElementById('billNo').value = bill.billNo;
+                document.getElementById('billDate').value = bill.date;
+                document.getElementById('customerName').value = bill.customerName;
+                document.getElementById('customerPhone').value = bill.customerPhone || '';
+                document.getElementById('paymentMethod').value = bill.paymentMethod || 'Cash';
+                document.getElementById('discount').value = bill.discount || 0;
+                document.getElementById('receivedAmount').value = bill.receivedAmount || 0;
+                document.getElementById('remarks').value = bill.remarks || '';
+                
+                // Clear existing items
+                document.getElementById('billItemsTable').innerHTML = '';
+                
+                // Add bill items
+                bill.items.forEach(item => {
+                    const tableBody = document.getElementById('billItemsTable');
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${item.productName}</td>
+                        <td>${item.weight.toFixed(2)} kg</td>
+                        <td>Rs. ${item.rate.toFixed(2)}</td>
+                        <td>Rs. ${item.amount.toFixed(2)}</td>
+                        <td>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="removeBillItem(this)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    `;
+                    row.dataset.productId = item.productId;
+                    row.dataset.weight = item.weight;
+                    row.dataset.rate = item.rate;
+                    row.dataset.amount = item.amount;
+                    tableBody.appendChild(row);
+                });
+                
+                // Calculate totals
+                calculateTotal();
+                
+                showAlert('Editing Bill: ' + bill.billNo, 'info');
+            } else {
+                showAlert('Bill not found', 'warning');
+            }
+        } catch (error) {
+            console.error('Error loading bill for editing:', error);
+            showAlert('Error loading bill: ' + error.message, 'danger');
+        }
+    }
+</script>
+</body>
+</html>
