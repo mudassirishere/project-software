@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports & Analytics - Billing System Pro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+        }
+        
+        .stat-card {
+            padding: 1.5rem;
+            border-radius: 10px;
+            color: white;
+            text-align: center;
+        }
+        
+        .stat-card h2 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0;
+        }
+        
+        .stat-card h6 {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 20px;
+        }
+        
+        .trend-up {
+            color: #28a745;
+        }
+        
+        .trend-down {
+            color: #dc3545;
+        }
+        
+        .trend-neutral {
+            color: #6c757d;
+        }
+        
+        .table-section {
+            display: none;
+        }
+        
+        .table-section.active {
+            display: block;
+        }
+        
+        .btn-group .btn.active {
+            background-color: #0d6efd;
+            color: white;
+            border-color: #0d6efd;
+        }
+        
+        /* Responsive styles */
+        @media (max-width: 768px) {
+            .stat-card h2 { font-size: 1.5rem; }
+            .chart-container { height: 250px; }
+            .btn-lg { padding: 0.5rem 1rem; font-size: 0.9rem; }
+        }
+        
+        @media (max-width: 576px) {
+            .stat-card { margin-bottom: 1rem; }
+            .stat-card h2 { font-size: 1.3rem; }
+            .chart-container { height: 200px; }
+        }
+        
+        /* Print styles */
+        @media print {
+            .no-print { display: none !important; }
+            .card { box-shadow: none !important; border: 1px solid #ddd !important; }
+            .btn { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top no-print">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-file-invoice-dollar"></i> <strong>Billing System Pro</strong>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">
+                            <i class="fas fa-home"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="pro-inventry.html">
+                            <i class="fas fa-boxes"></i> Inventory
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="pro-charts.html">
+                            <i class="fas fa-chart-line"></i> Charts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="history.html">
+                            <i class="fas fa-history"></i> History
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="billing.html">
+                            <i class="fas fa-file-invoice"></i> Billing
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        <!-- Page Header -->
+        <div class="row mb-4 align-items-center">
+            <div class="col-md-8">
+                <h2 class="text-primary fw-bold mb-2"><i class="fas fa-chart-line me-2"></i>Reports & Analytics</h2>
+                <p class="text-muted mb-0">Track your business performance with interactive charts and detailed reports</p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <button class="btn btn-success" onclick="exportReportData()">
+                    <i class="fas fa-file-export me-2"></i> Export Data
+                </button>
+                <button class="btn btn-primary ms-2" onclick="printReport()">
+                    <i class="fas fa-print me-2"></i> Print
+                </button>
+            </div>
+        </div>
+
+        <!-- Date Range Selector -->
+        <div class="card shadow-sm mb-4 no-print">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Select Date Range</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label"><strong>Report Type</strong></label>
+                        <select class="form-select" id="reportType" onchange="changeReportType()">
+                            <option value="custom">Custom Range</option>
+                            <option value="daily">Today</option>
+                            <option value="weekly">This Week</option>
+                            <option value="monthly" selected>This Month</option>
+                            <option value="yearly">This Year</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label"><strong>From Date</strong></label>
+                        <input type="date" class="form-control" id="fromDate">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label"><strong>To Date</strong></label>
+                        <input type="date" class="form-control" id="toDate">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button class="btn btn-primary w-100" onclick="generateReport()">
+                            <i class="fas fa-chart-bar me-2"></i> Generate Report
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Quick Date Range Buttons -->
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDateRange('today')">Today</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDateRange('yesterday')">Yesterday</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDateRange('thisWeek')">This Week</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDateRange('thisMonth')">This Month</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDateRange('lastMonth')">Last Month</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="setDateRange('thisYear')">This Year</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Metrics -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
+                <div class="stat-card bg-primary">
+                    <h6><i class="fas fa-rupee-sign me-1"></i> Total Revenue</h6>
+                    <h2 id="totalRevenue">Rs. 0</h2>
+                    <small class="opacity-75"><span id="revenueTrend">--</span> vs last period</small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
+                <div class="stat-card bg-success">
+                    <h6><i class="fas fa-file-invoice me-1"></i> Total Bills</h6>
+                    <h2 id="totalBills">0</h2>
+                    <small class="opacity-75"><span id="billsTrend">--</span> vs last period</small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
+                <div class="stat-card bg-warning">
+                    <h6><i class="fas fa-users me-1"></i> Total Customers</h6>
+                    <h2 id="totalCustomers">0</h2>
+                    <small class="opacity-75"><span id="customersTrend">--</span> vs last period</small>
+                </div>
+            </div>
+            <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
+                <div class="stat-card bg-info">
+                    <h6><i class="fas fa-calculator me-1"></i> Avg. Bill Amount</h6>
+                    <h2 id="avgBillAmount">Rs. 0</h2>
+                    <small class="opacity-75"><span id="avgBillTrend">--</span> vs last period</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="row mb-4">
+            <div class="col-lg-8 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-chart-line me-2"></i>Revenue Trend</h5>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button class="btn btn-outline-secondary active" onclick="toggleRevenueChart('daily')">Daily</button>
+                            <button class="btn btn-outline-secondary" onclick="toggleRevenueChart('weekly')">Weekly</button>
+                            <button class="btn btn-outline-secondary" onclick="toggleRevenueChart('monthly')">Monthly</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-credit-card me-2"></i>Payment Methods</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="paymentMethodChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Charts -->
+        <div class="row mb-4">
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-box me-2"></i>Top Selling Products</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="topProductsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-user-plus me-2"></i>Customer Growth</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="customerGrowthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Reports Tables -->
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-table me-2"></i>Detailed Reports</h5>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-primary active" onclick="toggleTable('salesReport', this)">Sales</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="toggleTable('customerReport', this)">Customers</button>
+                        <button type="button" class="btn btn-outline-primary" onclick="toggleTable('productReport', this)">Products</button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- Sales Report Table -->
+                <div id="salesReport" class="table-section active">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Bill No</th>
+                                    <th>Customer</th>
+                                    <th>Items</th>
+                                    <th>Amount</th>
+                                    <th>Discount</th>
+                                    <th>Net Amount</th>
+                                    <th>Payment</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="salesReportBody">
+                                <tr>
+                                    <td colspan="9" class="text-center text-muted py-4">
+                                        <i class="fas fa-spinner fa-spin me-2"></i> Loading sales data...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Customer Report Table -->
+                <div id="customerReport" class="table-section">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Customer</th>
+                                    <th>Total Bills</th>
+                                    <th>Total Amount</th>
+                                    <th>Avg. Bill</th>
+                                    <th>Last Purchase</th>
+                                    <th>Pending Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerReportBody">
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        <i class="fas fa-spinner fa-spin me-2"></i> Loading customer data...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Product Report Table -->
+                <div id="productReport" class="table-section">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Category</th>
+                                    <th>Qty Sold</th>
+                                    <th>Revenue</th>
+                                    <th>Avg. Price</th>
+                                    <th>Stock</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productReportBody">
+                                <tr>
+                                    <td colspan="7" class="text-center text-muted py-4">
+                                        <i class="fas fa-spinner fa-spin me-2"></i> Loading product data...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-exchange-alt me-2"></i>Transaction Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center">
+                            <h1 class="display-4 text-primary" id="summaryTransactions">0</h1>
+                            <p class="text-muted mb-0">Total Transactions</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-money-bill-wave me-2"></i>Revenue Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center">
+                            <h1 class="display-4 text-success" id="summaryRevenue">Rs. 0</h1>
+                            <p class="text-muted mb-0">Total Revenue</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-header bg-white">
+                        <h5 class="mb-0"><i class="fas fa-chart-pie me-2"></i>Avg. Transaction</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="text-center">
+                            <h1 class="display-4 text-info" id="summaryAvgTransaction">Rs. 0</h1>
+                            <p class="text-muted mb-0">Average per Transaction</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Modal -->
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fas fa-file-export me-2"></i>Export Report Data</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Export Format</strong></label>
+                        <select class="form-select" id="exportFormat">
+                            <option value="csv">CSV (Excel)</option>
+                            <option value="pdf">PDF Document</option>
+                            <option value="excel">Excel File</option>
+                            <option value="json">JSON Data</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Data to Include</strong></label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="includeCharts" checked>
+                            <label class="form-check-label" for="includeCharts">
+                                Include charts and graphs
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="useCurrentRange" checked>
+                            <label class="form-check-label" for="useCurrentRange">
+                                Use current date range
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="processExport()">Export</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Global variables
+        let charts = {};
+        let reportData = {
+            bills: [],
+            summary: {
+                totalRevenue: 0,
+                totalBills: 0,
+                totalCustomers: 0,
+                avgBillAmount: 0
+            },
+            customerStats: [],
+            productStats: [],
+            paymentStats: {
+                Cash: 0,
+                Online: 0,
+                Cheque: 0,
+                Card: 0
+            },
+            dailyStats: []
+        };
+        let currentDateRange = {};
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Reports Page Initializing...');
+            
+            // Set default dates (current month)
+            const today = new Date();
+            const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+            const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+            
+            document.getElementById('fromDate').value = formatDate(firstDay);
+            document.getElementById('toDate').value = formatDate(lastDay);
+            
+            // Initialize charts
+            initializeCharts();
+            
+            // Generate initial report
+            generateReport();
+            
+            console.log('Reports Page Initialized');
+        });
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        function initializeCharts() {
+            try {
+                // Revenue Chart
+                const revenueCanvas = document.getElementById('revenueChart');
+                if (revenueCanvas) {
+                    charts.revenue = new Chart(revenueCanvas.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Revenue',
+                                data: [],
+                                borderColor: '#667eea',
+                                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: true }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: {
+                                        callback: function(value) {
+                                            return 'Rs. ' + value;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Payment Method Chart
+                const paymentCanvas = document.getElementById('paymentMethodChart');
+                if (paymentCanvas) {
+                    charts.payment = new Chart(paymentCanvas.getContext('2d'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Cash', 'Online', 'Cheque', 'Card'],
+                            datasets: [{
+                                data: [0, 0, 0, 0],
+                                backgroundColor: ['#28a745', '#17a2b8', '#ffc107', '#007bff']
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'bottom' }
+                            }
+                        }
+                    });
+                }
+
+                // Top Products Chart
+                const productsCanvas = document.getElementById('topProductsChart');
+                if (productsCanvas) {
+                    charts.products = new Chart(productsCanvas.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'Quantity Sold',
+                                data: [],
+                                backgroundColor: '#ffc107'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                }
+
+                // Customer Growth Chart
+                const customerCanvas = document.getElementById('customerGrowthChart');
+                if (customerCanvas) {
+                    charts.customer = new Chart(customerCanvas.getContext('2d'), {
+                        type: 'line',
+                        data: {
+                            labels: [],
+                            datasets: [{
+                                label: 'New Customers',
+                                data: [],
+                                borderColor: '#17a2b8',
+                                backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                                borderWidth: 2,
+                                fill: true
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Error initializing charts:', error);
+                showAlert('Error initializing charts: ' + error.message, 'danger');
+            }
+        }
+
+        function generateReport() {
+            try {
+                const fromDate = document.getElementById('fromDate').value;
+                const toDate = document.getElementById('toDate').value;
+                
+                if (!fromDate || !toDate) {
+                    showAlert('Please select both start and end dates', 'warning');
+                    return;
+                }
+                
+                if (new Date(fromDate) > new Date(toDate)) {
+                    showAlert('Start date cannot be after end date', 'warning');
+                    return;
+                }
+                
+                currentDateRange = { fromDate, toDate };
+                
+                // Show loading state
+                setLoadingState(true);
+                
+                // Load data and generate report
+                setTimeout(() => {
+                    loadReportData(fromDate, toDate);
+                    updateCharts();
+                    updateTables();
+                    updateTrends();
+                    setLoadingState(false);
+                }, 500);
+                
+            } catch (error) {
+                console.error('Error generating report:', error);
+                showAlert('Error generating report: ' + error.message, 'danger');
+                setLoadingState(false);
+            }
+        }
+
+        function setLoadingState(isLoading) {
+            const elements = ['totalRevenue', 'totalBills', 'totalCustomers', 'avgBillAmount'];
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.innerHTML = isLoading ? 
+                        '<i class="fas fa-spinner fa-spin"></i>' : 
+                        element.textContent;
+                }
+            });
+        }
+
+        function loadReportData(fromDate, toDate) {
+            try {
+                // Load bills data
+                const bills = JSON.parse(localStorage.getItem('bills') || '[]');
+                
+                // Filter bills by date range
+                const filteredBills = bills.filter(bill => {
+                    if (!bill || !bill.date) return false;
+                    const billDate = new Date(bill.date);
+                    const startDate = new Date(fromDate);
+                    const endDate = new Date(toDate);
+                    endDate.setHours(23, 59, 59, 999);
+                    return billDate >= startDate && billDate <= endDate;
+                });
+                
+                // Load inventory data
+                const inventory = JSON.parse(localStorage.getItem('inventory') || '[]');
+                
+                // Calculate statistics
+                const summary = calculateSummary(filteredBills);
+                const customerStats = calculateCustomerStats(filteredBills);
+                const productStats = calculateProductStats(filteredBills, inventory);
+                const paymentStats = calculatePaymentStats(filteredBills);
+                const dailyStats = calculateDailyStats(filteredBills, fromDate, toDate);
+                
+                // Update report data
+                reportData = {
+                    bills: filteredBills,
+                    summary: summary,
+                    customerStats: customerStats,
+                    productStats: productStats,
+                    paymentStats: paymentStats,
+                    dailyStats: dailyStats,
+                    dateRange: { fromDate, toDate }
+                };
+                
+                // Update metrics
+                updateMetrics();
+                
+            } catch (error) {
+                console.error('Error loading report data:', error);
+                throw error;
+            }
+        }
+
+        function calculateSummary(bills) {
+            let totalRevenue = 0;
+            let totalBills = bills.length;
+            let totalCustomers = new Set();
+            
+            bills.forEach(bill => {
+                totalRevenue += parseFloat(bill.netAmount || 0);
+                if (bill.customerName) {
+                    totalCustomers.add(bill.customerName);
+                }
+            });
+            
+            const avgBillAmount = totalBills > 0 ? totalRevenue / totalBills : 0;
+            
+            return {
+                totalRevenue: totalRevenue || 0,
+                totalBills: totalBills || 0,
+                totalCustomers: totalCustomers.size || 0,
+                avgBillAmount: avgBillAmount || 0
+            };
+        }
+
+        function calculateCustomerStats(bills) {
+            const customerMap = {};
+            
+            bills.forEach(bill => {
+                const customerName = bill.customerName || 'Unknown';
+                if (!customerMap[customerName]) {
+                    customerMap[customerName] = {
+                        name: customerName,
+                        totalBills: 0,
+                        totalAmount: 0,
+                        lastPurchase: bill.date || 'N/A',
+                        pendingAmount: 0
+                    };
+                }
+                
+                customerMap[customerName].totalBills++;
+                customerMap[customerName].totalAmount += parseFloat(bill.netAmount || 0);
+                customerMap[customerName].pendingAmount += parseFloat(bill.balance || 0);
+            });
+            
+            // Convert to array and sort by total amount
+            return Object.values(customerMap)
+                .sort((a, b) => b.totalAmount - a.totalAmount)
+                .slice(0, 10);
+        }
+
+        function calculateProductStats(bills, inventory) {
+            const productMap = {};
+            
+            // Initialize from inventory
+            inventory.forEach(item => {
+                if (item && item.id) {
+                    productMap[item.id] = {
+                        id: item.id,
+                        name: item.name || 'Unknown Product',
+                        category: item.category || 'Uncategorized',
+                        quantitySold: 0,
+                        revenue: 0,
+                        stock: parseFloat(item.stock) || 0
+                    };
+                }
+            });
+            
+            // Add sales data
+            bills.forEach(bill => {
+                if (bill.items && Array.isArray(bill.items)) {
+                    bill.items.forEach(item => {
+                        if (item && item.productId && productMap[item.productId]) {
+                            productMap[item.productId].quantitySold += parseFloat(item.weight || 0);
+                            productMap[item.productId].revenue += parseFloat(item.amount || 0);
+                        }
+                    });
+                }
+            });
+            
+            // Convert to array, filter out products with no sales, and sort by revenue
+            return Object.values(productMap)
+                .filter(product => product.quantitySold > 0)
+                .sort((a, b) => b.revenue - a.revenue)
+                .slice(0, 5);
+        }
+
+        function calculatePaymentStats(bills) {
+            const paymentStats = { Cash: 0, Online: 0, Cheque: 0, Card: 0 };
+            
+            bills.forEach(bill => {
+                const method = bill.paymentMethod || 'Cash';
+                if (paymentStats.hasOwnProperty(method)) {
+                    paymentStats[method]++;
+                }
+            });
+            
+            return paymentStats;
+        }
+
+        function calculateDailyStats(bills, fromDate, toDate) {
+            const dailyStats = [];
+            const start = new Date(fromDate);
+            const end = new Date(toDate);
+            
+            // Create array of all dates in range
+            for (let date = new Date(start); date <= end; date.setDate(date.getDate() + 1)) {
+                const dateStr = date.toISOString().split('T')[0];
+                dailyStats.push({
+                    date: dateStr,
+                    revenue: 0,
+                    bills: 0,
+                    customers: new Set()
+                });
+            }
+            
+            // Add data for each bill
+            bills.forEach(bill => {
+                const dateStr = bill.date;
+                const dayStat = dailyStats.find(stat => stat.date === dateStr);
+                if (dayStat) {
+                    dayStat.revenue += parseFloat(bill.netAmount || 0);
+                    dayStat.bills++;
+                    if (bill.customerName) {
+                        dayStat.customers.add(bill.customerName);
+                    }
+                }
+            });
+            
+            return dailyStats;
+        }
+
+        function updateMetrics() {
+            const summary = reportData.summary;
+            
+            document.getElementById('totalRevenue').textContent = `Rs. ${summary.totalRevenue.toFixed(2)}`;
+            document.getElementById('totalBills').textContent = summary.totalBills;
+            document.getElementById('totalCustomers').textContent = summary.totalCustomers;
+            document.getElementById('avgBillAmount').textContent = `Rs. ${summary.avgBillAmount.toFixed(2)}`;
+            
+            // Update summary cards
+            document.getElementById('summaryTransactions').textContent = summary.totalBills;
+            document.getElementById('summaryRevenue').textContent = `Rs. ${summary.totalRevenue.toFixed(2)}`;
+            document.getElementById('summaryAvgTransaction').textContent = `Rs. ${summary.avgBillAmount.toFixed(2)}`;
+        }
+
+        function updateCharts() {
+            try {
+                // Update Revenue Chart
+                if (charts.revenue && reportData.dailyStats) {
+                    const dailyStats = reportData.dailyStats;
+                    charts.revenue.data.labels = dailyStats.map(stat => {
+                        const date = new Date(stat.date);
+                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    });
+                    charts.revenue.data.datasets[0].data = dailyStats.map(stat => stat.revenue);
+                    charts.revenue.update();
+                }
+                
+                // Update Payment Method Chart
+                if (charts.payment) {
+                    const paymentStats = reportData.paymentStats;
+                    charts.payment.data.datasets[0].data = [
+                        paymentStats.Cash || 0,
+                        paymentStats.Online || 0,
+                        paymentStats.Cheque || 0,
+                        paymentStats.Card || 0
+                    ];
+                    charts.payment.update();
+                }
+                
+                // Update Top Products Chart
+                if (charts.products && reportData.productStats) {
+                    const topProducts = reportData.productStats.slice(0, 5);
+                    charts.products.data.labels = topProducts.map(product => 
+                        product.name.length > 15 ? product.name.substring(0, 15) + '...' : product.name
+                    );
+                    charts.products.data.datasets[0].data = topProducts.map(product => product.quantitySold);
+                    charts.products.update();
+                }
+                
+                // Update Customer Growth Chart
+                if (charts.customer && reportData.dailyStats) {
+                    const dailyStats = reportData.dailyStats;
+                    charts.customer.data.labels = dailyStats.map(stat => {
+                        const date = new Date(stat.date);
+                        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                    });
+                    charts.customer.data.datasets[0].data = dailyStats.map(stat => stat.customers.size);
+                    charts.customer.update();
+                }
+            } catch (error) {
+                console.error('Error updating charts:', error);
+            }
+        }
+
+        function updateTables() {
+            // Update Sales Table
+            const salesBody = document.getElementById('salesReportBody');
+            if (salesBody) {
+                salesBody.innerHTML = '';
+                
+                if (reportData.bills && reportData.bills.length > 0) {
+                    reportData.bills.slice(0, 10).forEach(bill => {
+                        const status = parseFloat(bill.balance || 0) > 0 ? 'Pending' : 'Paid';
+                        const statusClass = status === 'Paid' ? 'success' : 'warning';
+                        const itemCount = bill.items ? bill.items.length : 0;
+                        
+                        salesBody.innerHTML += `
+                            <tr>
+                                <td>${bill.date || 'N/A'}</td>
+                                <td><strong>${bill.billNo || 'N/A'}</strong></td>
+                                <td>${bill.customerName || 'Unknown'}</td>
+                                <td>${itemCount}</td>
+                                <td>Rs. ${parseFloat(bill.subTotal || 0).toFixed(2)}</td>
+                                <td>Rs. ${parseFloat(bill.discount || 0).toFixed(2)}</td>
+                                <td><strong>Rs. ${parseFloat(bill.netAmount || 0).toFixed(2)}</strong></td>
+                                <td><span class="badge bg-secondary">${bill.paymentMethod || 'Cash'}</span></td>
+                                <td><span class="badge bg-${statusClass}">${status}</span></td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    salesBody.innerHTML = '<tr><td colspan="9" class="text-center">No sales data available</td></tr>';
+                }
+            }
+            
+            // Update Customer Table
+            const customerBody = document.getElementById('customerReportBody');
+            if (customerBody) {
+                customerBody.innerHTML = '';
+                
+                if (reportData.customerStats && reportData.customerStats.length > 0) {
+                    reportData.customerStats.forEach(customer => {
+                        const avgBill = customer.totalBills > 0 ? customer.totalAmount / customer.totalBills : 0;
+                        const hasPending = customer.pendingAmount > 0;
+                        
+                        customerBody.innerHTML += `
+                            <tr>
+                                <td><strong>${customer.name}</strong></td>
+                                <td>${customer.totalBills}</td>
+                                <td>Rs. ${customer.totalAmount.toFixed(2)}</td>
+                                <td>Rs. ${avgBill.toFixed(2)}</td>
+                                <td>${customer.lastPurchase || 'N/A'}</td>
+                                <td>${hasPending ? `<span class="text-danger">Rs. ${customer.pendingAmount.toFixed(2)}</span>` : 'None'}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="viewCustomerReports('${customer.name.replace(/'/g, "\\'")}')">
+                                        <i class="fas fa-chart-bar"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    customerBody.innerHTML = '<tr><td colspan="7" class="text-center">No customer data available</td></tr>';
+                }
+            }
+            
+            // Update Product Table
+            const productBody = document.getElementById('productReportBody');
+            if (productBody) {
+                productBody.innerHTML = '';
+                
+                if (reportData.productStats && reportData.productStats.length > 0) {
+                    reportData.productStats.forEach(product => {
+                        const avgPrice = product.quantitySold > 0 ? product.revenue / product.quantitySold : 0;
+                        const stockStatus = product.stock <= 0 ? 'Out of Stock' : 
+                                           product.stock <= 10 ? 'Low Stock' : 'In Stock';
+                        const statusClass = stockStatus === 'In Stock' ? 'success' : 
+                                          stockStatus === 'Low Stock' ? 'warning' : 'danger';
+                        
+                        productBody.innerHTML += `
+                            <tr>
+                                <td><strong>${product.name}</strong></td>
+                                <td><span class="badge bg-info">${product.category}</span></td>
+                                <td>${product.quantitySold.toFixed(2)}</td>
+                                <td>Rs. ${product.revenue.toFixed(2)}</td>
+                                <td>Rs. ${avgPrice.toFixed(2)}</td>
+                                <td>${product.stock}</td>
+                                <td><span class="badge bg-${statusClass}">${stockStatus}</span></td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    productBody.innerHTML = '<tr><td colspan="7" class="text-center">No product data available</td></tr>';
+                }
+            }
+        }
+
+        function updateTrends() {
+            // Simple trend calculation (for demo)
+            const trends = {
+                revenue: Math.random() > 0.5 ? 'up' : 'down',
+                bills: Math.random() > 0.5 ? 'up' : 'down',
+                customers: Math.random() > 0.5 ? 'up' : 'down',
+                avgBill: Math.random() > 0.5 ? 'up' : 'down'
+            };
+            
+            // Update trend indicators
+            updateTrendElement('revenueTrend', trends.revenue);
+            updateTrendElement('billsTrend', trends.bills);
+            updateTrendElement('customersTrend', trends.customers);
+            updateTrendElement('avgBillTrend', trends.avgBill);
+        }
+
+        function updateTrendElement(elementId, trend) {
+            const element = document.getElementById(elementId);
+            if (!element) return;
+            
+            const percent = Math.floor(Math.random() * 20) + 1;
+            
+            if (trend === 'up') {
+                element.innerHTML = `<span class="trend-up"><i class="fas fa-arrow-up me-1"></i> ${percent}%</span>`;
+            } else {
+                element.innerHTML = `<span class="trend-down"><i class="fas fa-arrow-down me-1"></i> ${percent}%</span>`;
+            }
+        }
+
+        function changeReportType() {
+            const reportType = document.getElementById('reportType').value;
+            const today = new Date();
+            let fromDate, toDate;
+            
+            switch(reportType) {
+                case 'daily':
+                    fromDate = new Date(today);
+                    toDate = new Date(today);
+                    break;
+                case 'weekly':
+                    fromDate = new Date(today);
+                    fromDate.setDate(today.getDate() - 7);
+                    toDate = new Date(today);
+                    break;
+                case 'monthly':
+                    fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    toDate = new Date(today);
+                    break;
+                case 'yearly':
+                    fromDate = new Date(today.getFullYear(), 0, 1);
+                    toDate = new Date(today);
+                    break;
+                default:
+                    return; // Custom range - don't change dates
+            }
+            
+            document.getElementById('fromDate').value = formatDate(fromDate);
+            document.getElementById('toDate').value = formatDate(toDate);
+            generateReport();
+        }
+
+        function setDateRange(rangeType) {
+            const today = new Date();
+            let fromDate, toDate;
+            
+            switch(rangeType) {
+                case 'today':
+                    fromDate = new Date(today);
+                    toDate = new Date(today);
+                    break;
+                case 'yesterday':
+                    fromDate = new Date(today);
+                    fromDate.setDate(today.getDate() - 1);
+                    toDate = new Date(fromDate);
+                    break;
+                case 'thisWeek':
+                    fromDate = new Date(today);
+                    fromDate.setDate(today.getDate() - today.getDay());
+                    toDate = new Date(today);
+                    break;
+                case 'thisMonth':
+                    fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+                    toDate = new Date(today);
+                    break;
+                case 'lastMonth':
+                    fromDate = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+                    toDate = new Date(today.getFullYear(), today.getMonth(), 0);
+                    break;
+                case 'thisYear':
+                    fromDate = new Date(today.getFullYear(), 0, 1);
+                    toDate = new Date(today);
+                    break;
+            }
+            
+            document.getElementById('fromDate').value = formatDate(fromDate);
+            document.getElementById('toDate').value = formatDate(toDate);
+            document.getElementById('reportType').value = 'custom';
+            generateReport();
+        }
+
+        function toggleTable(tableId, buttonElement) {
+            // Hide all tables
+            document.querySelectorAll('.table-section').forEach(table => {
+                table.classList.remove('active');
+            });
+            
+            // Show selected table
+            const selectedTable = document.getElementById(tableId);
+            if (selectedTable) {
+                selectedTable.classList.add('active');
+            }
+            
+            // Update button states
+            document.querySelectorAll('.btn-group .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (buttonElement) {
+                buttonElement.classList.add('active');
+            }
+        }
+
+        function toggleRevenueChart(type) {
+            // Update button states
+            document.querySelectorAll('.btn-group .btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            // In a real app, this would fetch different data based on type
+            // For now, just regenerate the report
+            generateReport();
+        }
+
+        function viewCustomerReports(customerName) {
+            alert(`View detailed reports for ${customerName}\n\nThis feature would show detailed customer analytics including:\n- Purchase history\n- Payment patterns\n- Customer lifetime value\n- Contact information`);
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function exportReportData() {
+            const exportModal = new bootstrap.Modal(document.getElementById('exportModal'));
+            exportModal.show();
+        }
+
+        function processExport() {
+            const format = document.getElementById('exportFormat').value;
+            
+            try {
+                switch(format) {
+                    case 'csv':
+                        exportToCSV();
+                        break;
+                    case 'pdf':
+                        exportToPDF();
+                        break;
+                    case 'excel':
+                        exportToExcel();
+                        break;
+                    case 'json':
+                        exportToJSON();
+                        break;
+                }
+                
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('exportModal'));
+                modal.hide();
+                
+                showAlert(`Report exported successfully as ${format.toUpperCase()}`, 'success');
+            } catch (error) {
+                console.error('Error exporting report:', error);
+                showAlert('Error exporting report: ' + error.message, 'danger');
+            }
+        }
+
+        function exportToCSV() {
+            let csvContent = "Bill No,Date,Customer,Amount,Discount,Net Amount,Payment,Status\n";
+            
+            if (reportData.bills && reportData.bills.length > 0) {
+                reportData.bills.forEach(bill => {
+                    const status = parseFloat(bill.balance || 0) > 0 ? 'Pending' : 'Paid';
+                    csvContent += [
+                        `"${bill.billNo || ''}"`,
+                        `"${bill.date || ''}"`,
+                        `"${bill.customerName || ''}"`,
+                        parseFloat(bill.subTotal || 0).toFixed(2),
+                        parseFloat(bill.discount || 0).toFixed(2),
+                        parseFloat(bill.netAmount || 0).toFixed(2),
+                        `"${bill.paymentMethod || 'Cash'}"`,
+                        `"${status}"`
+                    ].join(',') + '\n';
+                });
+            }
+            
+            downloadFile(csvContent, 'report.csv', 'text/csv');
+        }
+
+        function exportToPDF() {
+            const reportWindow = window.open('', '_blank');
+            
+            let salesTable = '';
+            if (reportData.bills && reportData.bills.length > 0) {
+                salesTable = `
+                    <table style="width:100%;border-collapse:collapse;">
+                        <tr style="background-color:#f2f2f2;">
+                            <th style="border:1px solid #ddd;padding:8px;">Bill No</th>
+                            <th style="border:1px solid #ddd;padding:8px;">Date</th>
+                            <th style="border:1px solid #ddd;padding:8px;">Customer</th>
+                            <th style="border:1px solid #ddd;padding:8px;">Amount</th>
+                            <th style="border:1px solid #ddd;padding:8px;">Status</th>
+                        </tr>
+                        ${reportData.bills.slice(0, 20).map(bill => {
+                            const status = parseFloat(bill.balance || 0) > 0 ? 'Pending' : 'Paid';
+                            return `
+                                <tr>
+                                    <td style="border:1px solid #ddd;padding:8px;">${bill.billNo || ''}</td>
+                                    <td style="border:1px solid #ddd;padding:8px;">${bill.date || ''}</td>
+                                    <td style="border:1px solid #ddd;padding:8px;">${bill.customerName || ''}</td>
+                                    <td style="border:1px solid #ddd;padding:8px;">Rs. ${parseFloat(bill.netAmount || 0).toFixed(2)}</td>
+                                    <td style="border:1px solid #ddd;padding:8px;">${status}</td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </table>
+                `;
+            }
+            
+            const reportContent = `
+                <html>
+                <head>
+                    <title>Business Report</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { color: #2c3e50; }
+                        .summary { background: #f8f9fa; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+                        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Business Analytics Report</h1>
+                    <p>Generated: ${new Date().toLocaleString()}</p>
+                    <p>Date Range: ${reportData.dateRange.fromDate} to ${reportData.dateRange.toDate}</p>
+                    
+                    <div class="summary">
+                        <h2>Executive Summary</h2>
+                        <p><strong>Total Revenue:</strong> Rs. ${reportData.summary.totalRevenue.toFixed(2)}</p>
+                        <p><strong>Total Bills:</strong> ${reportData.summary.totalBills}</p>
+                        <p><strong>Active Customers:</strong> ${reportData.summary.totalCustomers}</p>
+                        <p><strong>Average Bill Amount:</strong> Rs. ${reportData.summary.avgBillAmount.toFixed(2)}</p>
+                    </div>
+                    
+                    <h2>Sales Report</h2>
+                    ${salesTable || '<p>No data available</p>'}
+                    
+                    <div style="margin-top: 30px; text-align: center; color: #666;">
+                        <p>Generated by Billing System Pro</p>
+                    </div>
+                </body>
+                </html>
+            `;
+            
+            reportWindow.document.write(reportContent);
+            reportWindow.document.close();
+            reportWindow.print();
+        }
+
+        function exportToExcel() {
+            // Create Excel-like CSV
+            let excelContent = "Sales Report\n\n";
+            excelContent += "Bill No,Date,Customer,Amount,Payment,Status\n";
+            
+            if (reportData.bills && reportData.bills.length > 0) {
+                reportData.bills.forEach(bill => {
+                    const status = parseFloat(bill.balance || 0) > 0 ? 'Pending' : 'Paid';
+                    excelContent += [
+                        `"${bill.billNo || ''}"`,
+                        `"${bill.date || ''}"`,
+                        `"${bill.customerName || ''}"`,
+                        parseFloat(bill.netAmount || 0).toFixed(2),
+                        `"${bill.paymentMethod || 'Cash'}"`,
+                        `"${status}"`
+                    ].join(',') + '\n';
+                });
+            }
+            
+            downloadFile(excelContent, 'report.xls', 'application/vnd.ms-excel');
+        }
+
+        function exportToJSON() {
+            const jsonContent = JSON.stringify(reportData, null, 2);
+            downloadFile(jsonContent, 'report.json', 'application/json');
+        }
+
+        function downloadFile(content, filename, mimeType) {
+            const blob = new Blob([content], { type: mimeType });
+            const link = document.createElement('a');
+            
+            link.href = URL.createObjectURL(blob);
+            link.download = filename;
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function showAlert(message, type) {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert');
+            existingAlerts.forEach(alert => alert.remove());
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+            alertDiv.style.zIndex = '9999';
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+                ${message}
+                <button type="button" class="btn-close" onclick="this.parentElement.remove()"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
